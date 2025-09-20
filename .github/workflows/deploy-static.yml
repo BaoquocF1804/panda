@@ -2,6 +2,7 @@ name: Deploy React (Vite) to 123Host
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch: {}   # cho phép bấm Run workflow thủ công
 
 jobs:
   build-and-deploy:
@@ -16,22 +17,26 @@ jobs:
         run: |
           npm ci
           npm run build
-          # tạo htaccess cho SPA nếu bạn không commit sẵn
-          echo 'RewriteEngine On'                          >  dist/.htaccess
-          echo 'RewriteCond %{REQUEST_FILENAME} !-f'     >> dist/.htaccess
-          echo 'RewriteCond %{REQUEST_FILENAME} !-d'     >> dist/.htaccess
-          echo 'RewriteRule . /index.html [L]'           >> dist/.htaccess
+          # .htaccess cho SPA (Apache)
+          printf "RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.html [L]\n" > dist/.htaccess
+          # file dấu vết để kiểm tra bản deploy
+          echo "${GITHUB_SHA}" > dist/__VERSION.txt
+          date -u +"%Y-%m-%dT%H:%M:%SZ" >> dist/__VERSION.txt
+          ls -la dist
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
+          username: ${{ secrets.FTP_USER }}     # ví dụ: baoquoc@panda.json
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
-          server-dir: /home/fuetetvg/domains/panda.json/public_html/
+          port: 21
+          server-dir: public_html/              # *** quan trọng: đường dẫn tương đối ***
           local-dir: dist/
           dangerous-clean-slate: true
           exclude: |
-            **/.git*
+            **/.git**
             **/node_modules/**
+            **/.DS_Store
+            **/Thumbs.db
