@@ -30,7 +30,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           server-dir: /home/fuetetvg/domains/panda.json/public_html/
-          local-dir: dist
+          local-dir: dist/
           dangerous-clean-slate: true
           exclude: |
             **/.git*
