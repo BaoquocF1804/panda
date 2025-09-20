@@ -13,13 +13,19 @@ jobs:
         with:
           node-version: 20
 
+
       - name: Install & Build
         run: |
           npm ci
           npm run build
           # .htaccess cho SPA (Apache)
-          printf "RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.html [L]\n" > dist/.htaccess
-          # file dấu vết để kiểm tra bản deploy
+          cat > dist/.htaccess <<'HTACCESS'
+          RewriteEngine On
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.html [L]
+          HTACCESS
+          # file dấu vết
           echo "${GITHUB_SHA}" > dist/__VERSION.txt
           date -u +"%Y-%m-%dT%H:%M:%SZ" >> dist/__VERSION.txt
           ls -la dist
